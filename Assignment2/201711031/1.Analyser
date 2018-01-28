@@ -1,0 +1,240 @@
+#The standard analyzer is the default analyzer which is used if none is specified. It provides grammar based tokenization (based on the Unicode Text Segmentation algorithm and works well for most languages. It removes most punctuation, lowercases terms, and supports removing stop words.
+POST _analyze
+{
+  "tokenizer": "standard",
+  "text": ["Brown fox brown dog"]
+}
+#create index with settings of analyzer
+PUT my_index
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "my_english_analyzer": {
+          "type": "standard",
+          "max_token_length": 5,
+          "stopwords": "_english_"
+        }
+      }
+    }
+  }
+}
+#the word will be removed
+POST my_index/_analyze
+{
+  "analyzer": "my_english_analyzer",
+  "text": "The 2 QUICK Brown-Foxes jumped over the lazy dog's bone."
+}
+
+
+
+#The simple analyzer divides text into terms whenever it encounters a character which is not a letter. It lowercases all terms.
+#not configurable so settings like thing
+GET /library/_analyze
+{
+  "analyzer": "simple",
+  "text": ["The 2 QUICK Brown-Foxes jumped over the lazy dog's bone."]
+}
+
+
+
+#The whitespace analyzer breaks text into terms whenever it encounters a whitespace character.
+#not configurable so settings like thing
+POST _analyze
+{
+  "analyzer": "whitespace",
+  "text": "The 2 QUICK Brown-Foxes jumped over the lazy dog's bone."
+}
+
+
+
+#The stop analyzer is the same as the simple analyzer but adds support for removing stop words. It defaults to using the _english_ stop words.
+#the word will be removed
+POST _analyze
+{
+  "analyzer": "stop",
+  "text": "The 2 QUICK Brown-Foxes jumped over the lazy dog's bone."
+}
+DELETE my_index
+PUT my_index
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "my_stop_analyzer": {
+          "type": "stop",
+          "stopwords": ["the", "over"]
+        }
+      }
+    }
+  }
+}
+#the word will be removed
+POST my_index/_analyze
+{
+  "analyzer": "my_stop_analyzer",
+  "text": "The 2 QUICK Brown-Foxes jumped over the lazy dog's bone."
+}
+
+
+
+#The keyword analyzer is a “noop” analyzer which returns the entire input string as a single token.
+#not configurable so settings like thing
+POST _analyze
+{
+  "analyzer": "keyword",
+  "text": "The 2 QUICK Brown-Foxes jumped over the lazy dog's bone."
+}
+
+
+
+#The pattern analyzer uses a regular expression to split the text into terms. The regular expression should match the token separators not the tokens themselves. The regular expression defaults to \W+ (or all non-word characters).
+#configuration like pattern, flag, lowercase, stopwords, stopwords_path
+POST _analyze
+{
+  "analyzer": "pattern",
+  "text": "The 2 QUICK Brown-Foxes jumped over the lazy dog's bone."
+}
+DELETE my_index
+PUT my_index
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "my_email_analyzer": {
+          "type":      "pattern",
+          "pattern":   "\\W|_", 
+          "lowercase": true
+        }
+      }
+    }
+  }
+}
+POST my_index/_analyze
+{
+  "analyzer": "my_email_analyzer",
+  "text": "John_Smith@foo-bar.com"
+}
+DELETE my_index
+PUT my_index
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "camel": {
+          "type": "pattern",
+          "pattern": "([^\\p{L}\\d]+)|(?<=\\D)(?=\\d)|(?<=\\d)(?=\\D)|(?<=[\\p{L}&&[^\\p{Lu}]])(?=\\p{Lu})|(?<=\\p{Lu})(?=\\p{Lu}[\\p{L}&&[^\\p{Lu}]])"
+        }
+      }
+    }
+  }
+}
+GET my_index/_analyze
+{
+  "analyzer": "camel",
+  "text": "MooseX::FTPClass2_beta"
+}
+
+
+
+#A set of analyzers aimed at analyzing specific language text.
+PUT /arabic_example
+{
+  "settings": {
+    "analysis": {
+      "filter": {
+        "arabic_stop": {
+          "type":       "stop",
+          "stopwords":  "_arabic_" 
+        },
+        "arabic_keywords": {
+          "type":       "keyword_marker",
+          "keywords":   ["????"] 
+        },
+        "arabic_stemmer": {
+          "type":       "stemmer",
+          "language":   "arabic"
+        }
+      },
+      "analyzer": {
+        "arabic": {
+          "tokenizer":  "standard",
+          "filter": [
+            "lowercase",
+            "arabic_stop",
+            "arabic_normalization",
+            "arabic_keywords",
+            "arabic_stemmer"
+          ]
+        }
+      }
+    }
+  }
+}
+#testing hello what is your name ? in arabic ????? ?? ???? ?
+GET arabic_example/_analyze
+{
+  "analyzer": "arabic",
+  "text": "????? ?? ???? ?"
+}
+
+
+
+#The fingerprint analyzer implements a fingerprinting algorithm which is used by the OpenRefine project to assist in clustering. Input text is lowercased, normalized to remove extended characters, sorted, deduplicated and concatenated into a single token. If a stopword list is configured, stop words will also be removed.
+POST _analyze
+{
+  "analyzer": "fingerprint",
+  "text": "Yes yes, Gödel said this sentence is consistent and."
+}
+DELETE my_index
+#the word will be removed
+PUT my_index
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "my_fingerprint_analyzer": {
+          "type": "fingerprint",
+          "stopwords": "_english_"
+        }
+      }
+    }
+  }
+}
+
+POST my_index/_analyze
+{
+  "analyzer": "my_fingerprint_analyzer",
+  "text": "Yes yes, Gödel said this sentence is consistent and. the"
+}
+
+
+
+#Combination of : zero or more character filters, a tokenizer, zero or more token filters.
+#HTML Strip Character Filter with Standard Tokenizer as Tokenizer and Lowercase Token Filter, ASCII-Folding Token Filter as filters
+DELETE my_index
+PUT my_index
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "my_custom_analyzer": {
+          "type":      "custom",
+          "tokenizer": "standard",
+          "char_filter": [
+            "html_strip"
+          ],
+          "filter": [
+            "lowercase",
+            "asciifolding"
+          ]
+        }
+      }
+    }
+  }
+}
+POST my_index/_analyze
+{
+  "analyzer": "my_custom_analyzer",
+  "text": "Is this <b>déjà vu</b>?"
+}
