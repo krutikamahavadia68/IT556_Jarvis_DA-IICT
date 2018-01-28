@@ -1,0 +1,188 @@
+POST /library/books/_bulk
+{ "index": { "_id":1 }}
+{"title": "The quick brown fox", "price":"5", "colors":["red","green","blue"]}
+{ "index": { "_id":2 }}
+{"title": "The quick brown fox jumps over the lazy dog", "price":"15", "colors":["blue","yellow"]}
+{ "index": { "_id":3 }}
+{"title": "The quick brown fox jumps over the lazy dog", "price":"8", "colors":["red","blue"]}
+{ "index": { "_id":4 }}
+{"title": "Brown fox brown dog", "price":"2", "colors":["black","yellow","red","blue"]}
+{ "index": { "_id":5 }}
+{"title": "Lazy dog", "price":"9", "colors":["red","blue","green"]}
+output :-
+{
+  "took": 75,
+  "errors": false,
+  "items": [
+    {
+      "index": {
+        "_index": "library",
+        "_type": "books",
+        "_id": "1",
+        "_version": 3,
+        "result": "updated",
+        "_shards": {
+          "total": 1,
+          "successful": 1,
+          "failed": 0
+        },
+        "_seq_no": 10,
+        "_primary_term": 6,
+        "status": 200
+      }
+    },
+    {
+      "index": {
+        "_index": "library",
+        "_type": "books",
+        "_id": "2",
+        "_version": 3,
+        "result": "updated",
+        "_shards": {
+          "total": 1,
+          "successful": 1,
+          "failed": 0
+        },
+        "_seq_no": 11,
+        "_primary_term": 6,
+        "status": 200
+      }
+    },
+    {
+      "index": {
+        "_index": "library",
+        "_type": "books",
+        "_id": "3",
+        "_version": 3,
+        "result": "updated",
+        "_shards": {
+          "total": 1,
+          "successful": 1,
+          "failed": 0
+        },
+        "_seq_no": 12,
+        "_primary_term": 6,
+        "status": 200
+      }
+    },
+    {
+      "index": {
+        "_index": "library",
+        "_type": "books",
+        "_id": "4",
+        "_version": 3,
+        "result": "updated",
+        "_shards": {
+          "total": 1,
+          "successful": 1,
+          "failed": 0
+        },
+        "_seq_no": 13,
+        "_primary_term": 6,
+        "status": 200
+      }
+    },
+    {
+      "index": {
+        "_index": "library",
+        "_type": "books",
+        "_id": "5",
+        "_version": 3,
+        "result": "updated",
+        "_shards": {
+          "total": 1,
+          "successful": 1,
+          "failed": 0
+        },
+        "_seq_no": 14,
+        "_primary_term": 6,
+        "status": 200
+      }
+    }
+  ]
+}
+
+GET /library/books/_search
+{
+ "query": {
+   "bool": {
+     "should": [
+       {
+         "match_phrase": {
+           "title": {
+             "query": "quick dog"
+           }
+         }
+       },
+       {
+         "match_phrase": {
+           "title": {
+             "query": "lazy dog",
+             "boost": 3
+           }
+         }
+       }
+     ]
+   }
+ } 
+}
+output :-
+{
+  "took": 103,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 3,
+    "max_score": 3.3649826,
+    "hits": [
+      {
+        "_index": "library",
+        "_type": "books",
+        "_id": "5",
+        "_score": 3.3649826,
+        "_source": {
+          "title": "Lazy dog",
+          "price": "9",
+          "colors": [
+            "red",
+            "blue",
+            "green"
+          ]
+        }
+      },
+      {
+        "_index": "library",
+        "_type": "books",
+        "_id": "2",
+        "_score": 1.9866086,
+        "_source": {
+          "title": "The quick brown fox jumps over the lazy dog",
+          "price": "15",
+          "colors": [
+            "blue",
+            "yellow"
+          ]
+        }
+      },
+      {
+        "_index": "library",
+        "_type": "books",
+        "_id": "3",
+        "_score": 1.9866086,
+        "_source": {
+          "title": "The quick brown fox jumps over the lazy dog",
+          "price": "8",
+          "colors": [
+            "red",
+            "blue"
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,144 @@
+PUT index
+{
+  "settings": {
+    "analysis": {
+      "normalizer": {
+        "my_normalizer": {
+          "type": "custom",
+          "char_filter": [],
+          "filter": ["lowercase", "asciifolding"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "type": {
+      "properties": {
+        "foo": {
+          "type": "keyword",
+          "normalizer": "my_normalizer"
+        }
+      }
+    }
+  }
+}
+output :-
+{
+  "acknowledged": true,
+  "shards_acknowledged": true,
+  "index": "index"
+}
+
+PUT index/type/1
+{
+  "foo": "BÀR"
+}
+output :-
+{
+  "_index": "index",
+  "_type": "type",
+  "_id": "1",
+  "_version": 1,
+  "result": "created",
+  "_shards": {
+    "total": 2,
+    "successful": 1,
+    "failed": 0
+  },
+  "_seq_no": 0,
+  "_primary_term": 1
+}
+
+PUT index/type/2
+{
+  "foo": "bar"
+}
+output :-
+{
+  "_index": "index",
+  "_type": "type",
+  "_id": "2",
+  "_version": 1,
+  "result": "created",
+  "_shards": {
+    "total": 2,
+    "successful": 1,
+    "failed": 0
+  },
+  "_seq_no": 0,
+  "_primary_term": 1
+}
+
+PUT index/type/3
+{
+  "foo": "baz"
+}
+output :-
+{
+  "_index": "index",
+  "_type": "type",
+  "_id": "3",
+  "_version": 1,
+  "result": "created",
+  "_shards": {
+    "total": 2,
+    "successful": 1,
+    "failed": 0
+  },
+  "_seq_no": 0,
+  "_primary_term": 1
+}
+
+POST index/_refresh
+output :-
+{
+  "_shards": {
+    "total": 10,
+    "successful": 5,
+    "failed": 0
+  }
+}
+
+GET index/_search
+{
+  "query": {
+    "match": {
+      "foo": "BAR"
+    }
+  }
+}
+output :-
+{
+  "took": 53,
+  "timed_out": false,
+  "_shards": {
+    "total": 5,
+    "successful": 5,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 2,
+    "max_score": 0.2876821,
+    "hits": [
+      {
+        "_index": "index",
+        "_type": "type",
+        "_id": "2",
+        "_score": 0.2876821,
+        "_source": {
+          "foo": "bar"
+        }
+      },
+      {
+        "_index": "index",
+        "_type": "type",
+        "_id": "1",
+        "_score": 0.2876821,
+        "_source": {
+          "foo": "BÀR"
+        }
+      }
+    ]
+  }
+}
