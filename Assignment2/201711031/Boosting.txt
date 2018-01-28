@@ -1,0 +1,19 @@
+#selects all documents that are unwanted and decrease their score by negative points specified
+GET library/books/_search
+{
+    "query": {
+        "boosting" : {
+            "positive" : {
+                "term" : {
+                    "title" : "dog"
+                }
+            },
+            "negative" : {
+                 "term" : {
+                     "title" : "fox"
+                }
+            },
+            "negative_boost" : 0.2
+        }
+    }
+}

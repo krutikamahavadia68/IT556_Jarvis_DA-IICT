@@ -1,0 +1,68 @@
+#you can also comnbine multiple types of query using bool query, bool query is composite query that contains sub query
+#following bool query has two must clause that must be met in returned document
+#find all document with quick and lazy dog in title
+GET /library/books/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "title": "quick"
+          }
+          },
+          {
+            "match_phrase": {
+            "title": "lazy dog"
+          }
+        }
+      ]
+    }
+  }
+}
+#must act as and operation
+#must_not act as not of and operation
+GET /library/books/_search
+{
+  "query": {
+    "bool": {
+      "must_not": [
+        {
+          "match": {
+            "title": "lazy"
+          }
+        },
+        {
+          "match_phrase": {
+            "title": "quick dog"
+          }
+        }
+      ]
+    }
+  }
+}
+#should says that these conditions doen't need to match all clause but the higher the match will result the higher the score which will lead that document to rise up in search return list
+GET /library/books/_search
+{
+ "query": {
+   "bool": {
+     "should": [
+       {
+         "match_phrase": {
+           "title": {
+             "query": "quick dog"
+           }
+         }
+       },
+       {
+         "match_phrase": {
+           "title": {
+             "query": "lazy dog",
+             "boost": 3
+           }
+         }
+       }
+     ]
+   }
+ } 
+}
